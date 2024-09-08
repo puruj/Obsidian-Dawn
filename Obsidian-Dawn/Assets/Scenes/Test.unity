@@ -331,6 +331,7 @@ Transform:
   - {fileID: 1541280445}
   - {fileID: 94611188}
   - {fileID: 1776939841}
+  - {fileID: 1737870503}
   m_Father: {fileID: 0}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -385,6 +386,12 @@ MonoBehaviour:
   AfterImageLifeTime: 0.35
   TimeBetweenAfterImages: 0.05
   AfterImageColor: {r: 0.14117648, g: 0.6, b: 0.9529412, a: 0.69411767}
+  Standing: {fileID: 777233026}
+  Ball: {fileID: 1541280444}
+  WaitToBall: 0.1
+  BallAnimator: {fileID: 1541280448}
+  bombPoint: {fileID: 1737870503}
+  bomb: {fileID: 5942491530061020886, guid: 56acba9b185c4e64fa003d06831a0917, type: 3}
 --- !u!1 &753268637
 GameObject:
   m_ObjectHideFlags: 0
@@ -2417,6 +2424,7 @@ GameObject:
   - component: {fileID: 1541280445}
   - component: {fileID: 1541280447}
   - component: {fileID: 1541280446}
+  - component: {fileID: 1541280448}
   m_Layer: 0
   m_Name: Ball Sprite
   m_TagString: Untagged
@@ -2448,7 +2456,7 @@ CircleCollider2D:
   m_GameObject: {fileID: 1541280444}
   m_Enabled: 1
   m_Density: 1
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 6200000, guid: 87ae62cee7b2a814189a1d5d5b76c025, type: 2}
   m_IsTrigger: 0
   m_UsedByEffector: 0
   m_UsedByComposite: 0
@@ -2507,6 +2515,58 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!95 &1541280448
+Animator:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1541280444}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 3695e025b8a747443a1d3b66dfcf301d, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
+--- !u!1 &1737870502
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1737870503}
+  m_Layer: 8
+  m_Name: Bomb Point
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1737870503
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1737870502}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: -1.4633, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 644892719}
+  m_RootOrder: 4
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1776939840
 GameObject:
   m_ObjectHideFlags: 0
