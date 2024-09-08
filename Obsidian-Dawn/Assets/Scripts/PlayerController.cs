@@ -27,6 +27,11 @@ public class PlayerController : MonoBehaviour
     public float TimeBetweenAfterImages;
     public Color AfterImageColor;
 
+    public GameObject Standing;
+    public GameObject Ball;
+    public float WaitToBall;
+    public Animator BallAnimator;
+
     private bool isOnGround;
 
     private bool canDoubleJump;
@@ -35,6 +40,8 @@ public class PlayerController : MonoBehaviour
     private float dashRechargeCounter;
 
     private float afterImageCounter;
+
+    private float ballCounter;
 
     // Start is called before the first frame update
     void Start()
@@ -51,7 +58,8 @@ public class PlayerController : MonoBehaviour
         }
         else
         {
-            if (Input.GetButtonDown("Fire2"))
+            //When standing then can dash
+            if (Input.GetButtonDown("Fire2") && Standing.activeSelf)
             {
                 dashCounter = DashTime;
                 ShowAfterImage();
@@ -108,6 +116,7 @@ public class PlayerController : MonoBehaviour
             PlayerRigidBody.velocity = new Vector2(PlayerRigidBody.velocity.x, JumpForce);
         }
 
+        //Shooting logic
         if (Input.GetButtonDown("Fire1"))
         {
             Instantiate(ShotToFire, ShotPoint.position, ShotPoint.rotation).MoveDirection =
@@ -116,8 +125,49 @@ public class PlayerController : MonoBehaviour
             PlayerAnimator.SetTrigger("shotFired");
         }
 
-        PlayerAnimator.SetBool("isOnGround", isOnGround);
-        PlayerAnimator.SetFloat("speed", Mathf.Abs(PlayerRigidBody.velocity.x));
+        //Ball Logic
+        if (!Ball.activeSelf)
+        {
+            if(Input.GetAxisRaw("Vertical") < -0.9f)
+            {
+                ballCounter -= Time.deltaTime;
+                if (ballCounter <= 0)
+                {
+                    Ball.SetActive(true);
+                    Standing.SetActive(false);
+                }
+            }
+            else
+            {
+                ballCounter = WaitToBall;
+            }
+        }
+        else
+        {
+            if (Input.GetAxisRaw("Vertical") > 0.9f)
+            {
+                ballCounter -= Time.deltaTime;
+                if (ballCounter <= 0)
+                {
+                    Ball.SetActive(false);
+                    Standing.SetActive(true);
+                }
+            }
+            else
+            {
+                ballCounter = WaitToBall;
+            }
+        }
+
+        if (Standing.activeSelf)
+        {
+            PlayerAnimator.SetBool("isOnGround", isOnGround);
+            PlayerAnimator.SetFloat("speed", Mathf.Abs(PlayerRigidBody.velocity.x));
+        }
+        if (Ball.activeSelf)
+        {
+            BallAnimator.SetFloat("speed", Mathf.Abs(PlayerRigidBody.velocity.x));
+        }
     }
 
     public void ShowAfterImage()
