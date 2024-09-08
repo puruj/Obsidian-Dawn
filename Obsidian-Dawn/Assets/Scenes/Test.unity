@@ -376,6 +376,14 @@ MonoBehaviour:
   PlayerAnimator: {fileID: 777233030}
   ShotToFire: {fileID: 4220476234908709890, guid: e0774fe04fd8154409018f7c08cbac56, type: 3}
   ShotPoint: {fileID: 1776939841}
+  DashSpeed: 25
+  DashTime: 0.2
+  WaitAfterDashing: 0.25
+  PlayerSpriteRenderer: {fileID: 777233029}
+  PlayerAfterImageSpriteRenderer: {fileID: 233228579948866926, guid: fe06cd2bc5d700f458ab9c9cab951475, type: 3}
+  AfterImageLifeTime: 0.35
+  TimeBetweenAfterImages: 0.05
+  AfterImageColor: {r: 0.14117648, g: 0.6, b: 0.9529412, a: 0.69411767}
 --- !u!1 &753268637
 GameObject:
   m_ObjectHideFlags: 0

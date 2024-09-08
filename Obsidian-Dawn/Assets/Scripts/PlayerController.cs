@@ -17,10 +17,24 @@ public class PlayerController : MonoBehaviour
     public BulletController ShotToFire;
     public Transform ShotPoint;
 
+    public float DashSpeed;
+    public float DashTime;
+    public float WaitAfterDashing;
+
+    public SpriteRenderer PlayerSpriteRenderer;
+    public SpriteRenderer PlayerAfterImageSpriteRenderer;
+    public float AfterImageLifeTime;
+    public float TimeBetweenAfterImages;
+    public Color AfterImageColor;
 
     private bool isOnGround;
 
     private bool canDoubleJump;
+
+    private float dashCounter;
+    private float dashRechargeCounter;
+
+    private float afterImageCounter;
 
     // Start is called before the first frame update
     void Start()
@@ -31,18 +45,49 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        //move sideways
-        PlayerRigidBody.velocity = new Vector2(Input.GetAxisRaw("Horizontal") * MoveSpeed, PlayerRigidBody.velocity.y);
+        if (dashRechargeCounter > 0)
+        {
+            dashRechargeCounter -= Time.deltaTime;
+        }
+        else
+        {
+            if (Input.GetButtonDown("Fire2"))
+            {
+                dashCounter = DashTime;
+                ShowAfterImage();
+            }
+        }
 
-        //handle direction change
-        if(PlayerRigidBody.velocity.x < 0)
+        if (dashCounter > 0)
         {
-            transform.localScale = new Vector3(-1f, 1f, 1f);
+            dashCounter = dashCounter - Time.deltaTime;
+
+            PlayerRigidBody.velocity = new Vector2(DashSpeed * transform.localScale.x, PlayerRigidBody.velocity.y);
+
+            afterImageCounter -= Time.deltaTime;
+            if (afterImageCounter <= 0)
+            {
+                ShowAfterImage();
+            }
+
+            dashRechargeCounter = WaitAfterDashing;
         }
-        else if(PlayerRigidBody.velocity.y > 0)
+        else
         {
-            transform.localScale = new Vector3(1f, 1f, 1f);
+            //move sideways
+            PlayerRigidBody.velocity = new Vector2(Input.GetAxisRaw("Horizontal") * MoveSpeed, PlayerRigidBody.velocity.y);
+
+            //handle direction change
+            if (PlayerRigidBody.velocity.x < 0)
+            {
+                transform.localScale = new Vector3(-1f, 1f, 1f);
+            }
+            else if (PlayerRigidBody.velocity.y > 0)
+            {
+                transform.localScale = new Vector3(1f, 1f, 1f);
+            }
         }
+
 
         //ground check
         isOnGround = Physics2D.OverlapCircle(GroundPoint.position, 0.2f, WhatIsGround);
@@ -52,7 +97,7 @@ public class PlayerController : MonoBehaviour
         {
             if (isOnGround)
             {
-                canDoubleJump = true;
+                canDoubleJump = true;               
             }
             else
             {
@@ -74,4 +119,18 @@ public class PlayerController : MonoBehaviour
         PlayerAnimator.SetBool("isOnGround", isOnGround);
         PlayerAnimator.SetFloat("speed", Mathf.Abs(PlayerRigidBody.velocity.x));
     }
+
+    public void ShowAfterImage()
+    {
+        SpriteRenderer image = Instantiate(PlayerAfterImageSpriteRenderer, transform.position, transform.rotation);
+
+        image.sprite = PlayerSpriteRenderer.sprite;
+        image.transform.localScale = transform.localScale;
+        image.color = AfterImageColor;
+
+        Destroy(image, AfterImageLifeTime);
+
+        afterImageCounter = TimeBetweenAfterImages;
+    }
+
 }
