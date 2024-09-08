@@ -43,6 +43,11 @@ public class PlayerController : MonoBehaviour
 
     private float ballCounter;
 
+    [SerializeField]
+    private Transform bombPoint;
+    [SerializeField]
+    private GameObject bomb;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -119,10 +124,17 @@ public class PlayerController : MonoBehaviour
         //Shooting logic
         if (Input.GetButtonDown("Fire1"))
         {
-            Instantiate(ShotToFire, ShotPoint.position, ShotPoint.rotation).MoveDirection =
-                new Vector2(transform.localScale.x, 0f);
+            if (Standing.activeSelf)
+            {
+                Instantiate(ShotToFire, ShotPoint.position, ShotPoint.rotation).MoveDirection =
+                    new Vector2(transform.localScale.x, 0f);
 
-            PlayerAnimator.SetTrigger("shotFired");
+                PlayerAnimator.SetTrigger("shotFired");
+            }
+            else if (Ball.activeSelf)
+            {
+                Instantiate(bomb, bombPoint.position, bombPoint.rotation);
+            }
         }
 
         //Ball Logic
