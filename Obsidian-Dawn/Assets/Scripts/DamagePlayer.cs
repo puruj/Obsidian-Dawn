@@ -4,8 +4,10 @@ using UnityEngine;
 
 public class DamagePlayer : MonoBehaviour
 {
-
     public int DamageAmount = 1;
+
+    public bool DestroyOnDamage;
+    public GameObject DestroyEffect;
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
@@ -25,7 +27,17 @@ public class DamagePlayer : MonoBehaviour
 
     private void DealDamage()
     {
-        PlayerHealthController.PlayerHealthManager.DamagePlayer(DamageAmount);
+        PlayerHealthController.Instance.DamagePlayer(DamageAmount);
+
+        if (DestroyOnDamage)
+        {
+            if(DestroyEffect != null)
+            {
+                Instantiate(DestroyEffect, transform.position, transform.rotation);
+            }
+
+            Destroy(gameObject);
+        }
     }
 
 }

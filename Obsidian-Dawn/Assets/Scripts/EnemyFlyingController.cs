@@ -17,7 +17,7 @@ public class EnemyFlyingController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        player = PlayerHealthController.PlayerHealthManager.transform;
+        player = PlayerHealthController.Instance.transform;
     }
 
     // Update is called once per frame

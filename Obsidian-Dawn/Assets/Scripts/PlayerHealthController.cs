@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class PlayerHealthController : MonoBehaviour
 {
-    public static PlayerHealthController PlayerHealthManager;
+    public static PlayerHealthController Instance;
 
     [HideInInspector]
     public int CurrentHealth;
@@ -12,13 +12,15 @@ public class PlayerHealthController : MonoBehaviour
 
     private void Awake()
     {
-        PlayerHealthManager = this;
+        Instance = this;        
     }
 
     // Start is called before the first frame update
     void Start()
     {
         CurrentHealth = MaxHealth;
+
+        UIController.Instance.UpdateHealth(CurrentHealth, MaxHealth);
     }
 
     // Update is called once per frame
@@ -36,6 +38,9 @@ public class PlayerHealthController : MonoBehaviour
             CurrentHealth = 0;
             gameObject.SetActive(false);
         }
+
+        UIController.Instance.UpdateHealth(CurrentHealth, MaxHealth);
+
     }
 
 }
