@@ -577,6 +577,7 @@ GameObject:
   - component: {fileID: 644892720}
   - component: {fileID: 644892721}
   - component: {fileID: 644892722}
+  - component: {fileID: 644892723}
   m_Layer: 8
   m_Name: Player
   m_TagString: Player
@@ -677,6 +678,20 @@ MonoBehaviour:
   CanDash: 1
   CanBecomeBall: 1
   CanDropBomb: 1
+--- !u!114 &644892723
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 644892718}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 10d68140e32216a42ac54aafd01ea651, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  CurrentHealth: 0
+  MaxHealth: 10
 --- !u!1 &725941725
 GameObject:
   m_ObjectHideFlags: 0
@@ -4097,9 +4112,11 @@ GameObject:
   - component: {fileID: 1606480463}
   - component: {fileID: 1606480462}
   - component: {fileID: 1606480464}
+  - component: {fileID: 1606480465}
+  - component: {fileID: 1606480466}
   m_Layer: 0
   m_Name: Enemy Walker
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -4181,6 +4198,33 @@ MonoBehaviour:
   jumpForce: 10
   rigidBody: {fileID: 1606480462}
   enemyPatrollerAnimator: {fileID: 924147454}
+--- !u!114 &1606480465
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1606480460}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ebc9a5affc5478e43b10366a69265bd9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  totalHealth: 3
+  deathEffect: {fileID: 7413983547693394229, guid: 37a42daf99f1a24459b57e3aa4ac3375, type: 3}
+--- !u!114 &1606480466
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1606480460}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0366eec70b205564f968d90cee0cf19f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  DamageAmount: 1
 --- !u!4 &1627121976 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7224805709362846184, guid: 16e01c3552c874d4f809d2b2ee0098a8, type: 3}
