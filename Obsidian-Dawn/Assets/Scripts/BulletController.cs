@@ -4,12 +4,18 @@ using UnityEngine;
 
 public class BulletController : MonoBehaviour
 {
-    public float BulletSpeed;
-    public Rigidbody2D BulletRigidbody;
-
     public Vector2 MoveDirection;
 
-    public GameObject ImpactEffect;
+    [SerializeField]
+    private float BulletSpeed;
+    [SerializeField]
+    private Rigidbody2D BulletRigidbody;
+
+    [SerializeField]
+    private GameObject ImpactEffect;
+
+    [SerializeField]
+    private int damageAmount = 1;
 
     // Update is called once per frame
     void Update()
@@ -19,7 +25,12 @@ public class BulletController : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if(ImpactEffect != null)
+        if (other.tag == "Enemy")
+        {
+            other.GetComponent<EnemyHealthController>().DamageEnemy(damageAmount);
+        }
+
+        if (ImpactEffect != null)
         {
             Instantiate(ImpactEffect, transform.position, Quaternion.identity);
         }
