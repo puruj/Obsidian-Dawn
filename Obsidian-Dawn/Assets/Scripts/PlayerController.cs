@@ -48,10 +48,12 @@ public class PlayerController : MonoBehaviour
     [SerializeField]
     private GameObject bomb;
 
+    private PlayerAbilityTracker playerAbilityTracker;
+
     // Start is called before the first frame update
     void Start()
     {
-        
+        playerAbilityTracker = GetComponent<PlayerAbilityTracker>();
     }
 
     // Update is called once per frame
@@ -64,7 +66,7 @@ public class PlayerController : MonoBehaviour
         else
         {
             //When standing then can dash
-            if (Input.GetButtonDown("Fire2") && Standing.activeSelf)
+            if (Input.GetButtonDown("Fire2") && Standing.activeSelf && playerAbilityTracker.CanDash)
             {
                 dashCounter = DashTime;
                 ShowAfterImage();
@@ -106,7 +108,7 @@ public class PlayerController : MonoBehaviour
         isOnGround = Physics2D.OverlapCircle(GroundPoint.position, 0.2f, WhatIsGround);
 
         //jump check
-        if (Input.GetButtonDown("Jump") && (isOnGround || canDoubleJump))
+        if (Input.GetButtonDown("Jump") && (isOnGround || (canDoubleJump && playerAbilityTracker.CanDoubleJump)))
         {
             if (isOnGround)
             {
@@ -131,7 +133,7 @@ public class PlayerController : MonoBehaviour
 
                 PlayerAnimator.SetTrigger("shotFired");
             }
-            else if (Ball.activeSelf)
+            else if (Ball.activeSelf && playerAbilityTracker.CanDropBomb)
             {
                 Instantiate(bomb, bombPoint.position, bombPoint.rotation);
             }
@@ -140,7 +142,7 @@ public class PlayerController : MonoBehaviour
         //Ball Logic
         if (!Ball.activeSelf)
         {
-            if(Input.GetAxisRaw("Vertical") < -0.9f)
+            if(Input.GetAxisRaw("Vertical") < -0.9f && playerAbilityTracker.CanBecomeBall)
             {
                 ballCounter -= Time.deltaTime;
                 if (ballCounter <= 0)
@@ -190,7 +192,7 @@ public class PlayerController : MonoBehaviour
         image.transform.localScale = transform.localScale;
         image.color = AfterImageColor;
 
-        Destroy(image, AfterImageLifeTime);
+        Destroy(image.gameObject, AfterImageLifeTime);
 
         afterImageCounter = TimeBetweenAfterImages;
     }
