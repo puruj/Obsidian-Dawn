@@ -8,6 +8,15 @@ public class UIController : MonoBehaviour
 
     public Slider HealthSlider;
 
+    [SerializeField]
+    private Image fadeScreen;
+    [SerializeField]
+    private float fadeSpeed = 2f;
+    [SerializeField]
+    private bool fadingToBlack;
+    [SerializeField]
+    private bool fadingfromBlack;
+
     private void Awake()
     {
         if (Instance == null)
@@ -30,7 +39,24 @@ public class UIController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+        if (fadingToBlack)
+        {
+            fadeScreen.color = new Color(fadeScreen.color.r, fadeScreen.color.g, fadeScreen.color.b, Mathf.MoveTowards(fadeScreen.color.a, 1f, fadeSpeed * Time.deltaTime));
+
+            if (fadeScreen.color.a == 1f)
+            {
+                fadingToBlack = false;
+            }
+        }
+        else if (fadingfromBlack)
+        {
+            fadeScreen.color = new Color(fadeScreen.color.r, fadeScreen.color.g, fadeScreen.color.b, Mathf.MoveTowards(fadeScreen.color.a, 0f, fadeSpeed * Time.deltaTime));
+
+            if (fadeScreen.color.a == 0f)
+            {
+                fadingfromBlack = false;
+            }
+        }
     }
 
     public void UpdateHealth(int currentHealth, int maxHealth)
@@ -40,5 +66,17 @@ public class UIController : MonoBehaviour
             HealthSlider.maxValue = maxHealth;
             HealthSlider.value = currentHealth;
         }
+    }
+
+    public void StartFadeToBlack()
+    {
+        fadingToBlack = true;
+        fadingfromBlack = false;
+    }
+
+    public void StartFadeFromBlack()
+    {
+        fadingfromBlack = true;
+        fadingToBlack = false;
     }
 }
