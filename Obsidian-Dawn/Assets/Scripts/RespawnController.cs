@@ -55,7 +55,7 @@ public class RespawnController : MonoBehaviour
         StartCoroutine(CoroutineRespawn());
     }
 
-    IEnumerator CoroutineRespawn()
+    private IEnumerator CoroutineRespawn()
     {
         player.SetActive(false);
 
