@@ -30,6 +30,11 @@ public class BulletController : MonoBehaviour
             other.GetComponent<EnemyHealthController>().DamageEnemy(damageAmount);
         }
 
+        if (other.tag == "Boss")
+        {
+            BossHealthController.Instance.TakeDamage(damageAmount);
+        }
+
         if (ImpactEffect != null)
         {
             Instantiate(ImpactEffect, transform.position, Quaternion.identity);
