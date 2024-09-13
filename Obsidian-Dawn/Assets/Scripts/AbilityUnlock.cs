@@ -34,21 +34,25 @@ public class AbilityUnlock : MonoBehaviour
                 if (unlockDoubleJump)
                 {
                     playerAbilityTracker.CanDoubleJump = true;
+                    PlayerPrefs.SetInt("DoubleJumpUnlocked", 1);
                 }
 
                 if (unlockDash)
                 {
                     playerAbilityTracker.CanDash = true;
+                    PlayerPrefs.SetInt("DashUnlocked", 1);
                 }
 
                 if (unlockBecomeBall)
                 {
                     playerAbilityTracker.CanBecomeBall = true;
+                    PlayerPrefs.SetInt("BallUnlocked", 1);
                 }
 
                 if (unlockDropBomb)
                 {
                     playerAbilityTracker.CanDropBomb = true;
+                    PlayerPrefs.SetInt("BombUnlocked", 1);
                 }
             }
 

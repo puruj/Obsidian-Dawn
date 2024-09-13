@@ -56,6 +56,9 @@ public class BossBattle : MonoBehaviour
 
     private bool battleEnded;
 
+    [SerializeField]
+    private string bossRef;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -210,6 +213,8 @@ public class BossBattle : MonoBehaviour
                 gameObject.SetActive(false);
 
                 AudioManager.Instance.PlayLevelMusic();
+
+                PlayerPrefs.SetInt(bossRef, 1);
             }
         }
     }
