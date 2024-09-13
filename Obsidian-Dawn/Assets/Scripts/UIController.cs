@@ -41,7 +41,7 @@ public class UIController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        
+        //UpdateHealth(PlayerHealthController.Instance.CurrentHealth, PlayerHealthController.Instance.MaxHealth);
     }
 
     // Update is called once per frame
