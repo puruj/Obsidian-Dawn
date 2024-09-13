@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
+
 public class UIController : MonoBehaviour
 {
     public static UIController Instance;
@@ -16,6 +18,12 @@ public class UIController : MonoBehaviour
     private bool fadingToBlack;
     [SerializeField]
     private bool fadingfromBlack;
+
+    [SerializeField]
+    private string mainMenuScene;
+
+    [SerializeField]
+    private GameObject pauseScreen;
 
     private void Awake()
     {
@@ -57,6 +65,11 @@ public class UIController : MonoBehaviour
                 fadingfromBlack = false;
             }
         }
+
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            PauseUnPause();
+        }
     }
 
     public void UpdateHealth(int currentHealth, int maxHealth)
@@ -78,5 +91,35 @@ public class UIController : MonoBehaviour
     {
         fadingfromBlack = true;
         fadingToBlack = false;
+    }
+
+    public void PauseUnPause()
+    {
+        if (!pauseScreen.activeSelf)
+        {
+            pauseScreen.SetActive(true);
+            Time.timeScale = 0f;
+        }
+        else
+        {
+            pauseScreen.SetActive(false);
+            Time.timeScale = 1f;
+        }
+    }
+
+    public void GoToMainMenu()
+    {
+        Time.timeScale = 1f;
+
+        Destroy(PlayerHealthController.Instance.gameObject);
+        PlayerHealthController.Instance = null;
+
+        Destroy(RespawnController.Instance.gameObject);
+        RespawnController.Instance = null;
+
+        Instance = null;
+        Destroy(gameObject);
+
+        SceneManager.LoadScene(mainMenuScene);
     }
 }

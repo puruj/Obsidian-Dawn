@@ -62,7 +62,7 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (CanMove)
+        if (CanMove && Time.timeScale != 0)
         {
             if (dashRechargeCounter > 0)
             {

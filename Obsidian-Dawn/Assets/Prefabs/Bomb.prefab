@@ -125,3 +125,7 @@ MonoBehaviour:
   WhatIsDestructibleMask:
     serializedVersion: 2
     m_Bits: 512
+  damageAmount: 3
+  WhatIsDamageable:
+    serializedVersion: 2
+    m_Bits: 16384

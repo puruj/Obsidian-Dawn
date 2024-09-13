@@ -11,6 +11,9 @@ public class BombController : MonoBehaviour
     public float BlastRange;
     public LayerMask WhatIsDestructibleMask;
 
+    public int damageAmount;
+    public LayerMask WhatIsDamageable;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -39,6 +42,18 @@ public class BombController : MonoBehaviour
                     Destroy(objectToRemove.gameObject);
                 }
             }
+
+            Collider2D[] objectsToDamage = Physics2D.OverlapCircleAll(transform.position, BlastRange, WhatIsDamageable);
+
+            foreach (Collider2D col in objectsToDamage)
+            {
+                EnemyHealthController enemyHealth = col.GetComponent<EnemyHealthController>();
+                if (enemyHealth != null)
+                {
+                    enemyHealth.DamageEnemy(damageAmount);
+                }
+            }
+
         }
     }
 }
