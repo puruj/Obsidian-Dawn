@@ -22,5 +22,8 @@ public class HealthPickup : MonoBehaviour
         }
 
         Destroy(gameObject);
+
+        AudioManager.Instance.PlaySFX(5);
+
     }
 }

@@ -54,6 +54,7 @@ public class BombController : MonoBehaviour
                 }
             }
 
+            AudioManager.Instance.PlaySFXAdjusted(4);
         }
     }
 }

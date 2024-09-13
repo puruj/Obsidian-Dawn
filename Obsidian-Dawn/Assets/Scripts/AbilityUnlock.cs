@@ -63,6 +63,9 @@ public class AbilityUnlock : MonoBehaviour
             Destroy(unlockText.transform.parent.gameObject, 5f);
 
             Destroy(gameObject);
+
+            AudioManager.Instance.PlaySFX(5);
+
         }
     }
 }

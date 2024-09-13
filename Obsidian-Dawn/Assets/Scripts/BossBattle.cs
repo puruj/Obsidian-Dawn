@@ -65,6 +65,8 @@ public class BossBattle : MonoBehaviour
         activeCounter = activeTime;
 
         shotCounter = timeBetweenShots1;
+
+        AudioManager.Instance.PlayBossMusic();
     }
 
     // Update is called once per frame
@@ -206,6 +208,8 @@ public class BossBattle : MonoBehaviour
                 cameraController.enabled = true;
 
                 gameObject.SetActive(false);
+
+                AudioManager.Instance.PlayLevelMusic();
             }
         }
     }

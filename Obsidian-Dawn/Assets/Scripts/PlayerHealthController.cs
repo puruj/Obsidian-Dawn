@@ -79,10 +79,12 @@ public class PlayerHealthController : MonoBehaviour
             {
                 CurrentHealth = 0;                
                 RespawnController.Instance.Respawn();
+                AudioManager.Instance.PlaySFX(8);
             }
             else
             {
                 invincibilityCounter = InvincibilityLength;
+                AudioManager.Instance.PlaySFXAdjusted(11);
             }
 
             UIController.Instance.UpdateHealth(CurrentHealth, MaxHealth);

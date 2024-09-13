@@ -40,6 +40,8 @@ public class BulletController : MonoBehaviour
             Instantiate(ImpactEffect, transform.position, Quaternion.identity);
         }
 
+        AudioManager.Instance.PlaySFXAdjusted(3);
+
         Destroy(gameObject);
     }
 

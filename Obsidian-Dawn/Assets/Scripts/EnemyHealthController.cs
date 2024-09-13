@@ -24,6 +24,7 @@ public class EnemyHealthController : MonoBehaviour
             Destroy(gameObject);
         }
 
+        AudioManager.Instance.PlaySFX(4);
     }
 
 }
