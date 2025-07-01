@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerController : MonoBehaviour
@@ -35,17 +36,18 @@ public class PlayerController : MonoBehaviour
     [Header("Ball morph")]
     public float WaitToBall = .5f;
 
-    private bool _isOnGround;
-    private bool _canDoubleJump;
-    private bool _jumpRequested;
-    private bool _dashRequested;
-    private float _horizontalInput;
-    private float _dashCounter;
-    private float _dashRechargeCounter;
-    private float _afterImageCounter;
-    private float _ballCounter;
+    private bool isOnGround;
+    private bool canDoubleJump;
+    private bool jumpRequested;
+    private bool dashRequested;
+    private float horizontalInput;
+    private float dashCounter;
+    private float dashRechargeCounter;
+    private float afterImageCounter;
+    private float ballCounter;
 
     private PlayerAbilityTracker _abilityTracker;
+    private static readonly Queue<SpriteRenderer> afterImagePool = new();
     public bool CanMove { get; set; } = true;
 
     #region Unity Life-cycle
@@ -62,22 +64,25 @@ public class PlayerController : MonoBehaviour
         }
 
         //Poll input
-        _horizontalInput = Input.GetAxisRaw("Horizontal");
+        horizontalInput = Input.GetAxisRaw("Horizontal");
 
         if (Input.GetButtonDown("Jump"))
         {
-            _jumpRequested = true;
+            jumpRequested = true;
         }
         if (Input.GetButtonDown("Fire2"))
         {
-            _dashRequested = true;
+            dashRequested = true;
         }
-
-        HandleFireInput();         // bullets / bombs
-        HandleBallMorphInput();    // ball transistion
-        UpdateAnimators();         // purely visual
+        // bullets / bombs
+        HandleFireInput();
+        // ball transistion
+        HandleBallMorphInput();    
+        UpdateAnimators();     
     }
-
+    /// <summary>
+    /// Fixed-time-step physics logic: ground check, dash, move, jump.
+    /// </summary>
     private void FixedUpdate()
     {
         if (!CanMove || Time.timeScale == 0) 
@@ -87,7 +92,7 @@ public class PlayerController : MonoBehaviour
         }
 
         // Ground check first so jump logic is correct
-        _isOnGround = Physics2D.OverlapCircle(GroundPoint.position, 0.2f, WhatIsGround);
+        isOnGround = Physics2D.OverlapCircle(GroundPoint.position, 0.2f, WhatIsGround);
 
         HandleDash();
         HandleHorizontalMovement();
@@ -95,77 +100,87 @@ public class PlayerController : MonoBehaviour
     }
     #endregion
 
+    /// <summary>
+    /// Consumes dash request, applies burst velocity, drops after-images,
+    /// and lets designer set recharge time.
+    /// </summary>
     private void HandleDash()
     {
         // recharge timer 
-        if (_dashRechargeCounter > 0)
+        if (dashRechargeCounter > 0)
         {
-            _dashRechargeCounter -= Time.fixedDeltaTime;
+            dashRechargeCounter -= Time.fixedDeltaTime;
         }
 
         // queue dash
-        if (_dashRequested && Standing.activeSelf && _abilityTracker.CanDash && _dashRechargeCounter <= 0)
+        if (dashRequested && Standing.activeSelf && _abilityTracker.CanDash && dashRechargeCounter <= 0)
         {
-            _dashCounter = DashTime;
-            _dashRechargeCounter = WaitAfterDashing;
+            dashCounter = DashTime;
+            dashRechargeCounter = WaitAfterDashing;
             ShowAfterImage();
             AudioManager.Instance.PlaySFXAdjusted(7);
         }
-        _dashRequested = false;   // consume request
+        // consume request
+        dashRequested = false;   
 
         // active dash movement
-        if (_dashCounter > 0)
+        if (dashCounter > 0)
         {
-            _dashCounter -= Time.fixedDeltaTime;
+            dashCounter -= Time.fixedDeltaTime;
             PlayerRigidBody.velocity = new Vector2(DashSpeed * transform.localScale.x, PlayerRigidBody.velocity.y);
 
-            _afterImageCounter -= Time.fixedDeltaTime;
-            if (_afterImageCounter <= 0) ShowAfterImage();
-            return; // skip normal movement while dashing
+            afterImageCounter -= Time.fixedDeltaTime;
+            if (afterImageCounter <= 0) ShowAfterImage();
+            // skip normal movement while dashing
+            return; 
         }
     }
 
     private void HandleHorizontalMovement()
     {
-        PlayerRigidBody.velocity = new Vector2(_horizontalInput * MoveSpeed, PlayerRigidBody.velocity.y);
+        PlayerRigidBody.velocity = new Vector2(horizontalInput * MoveSpeed, PlayerRigidBody.velocity.y);
 
         // flip sprite
-        if (_horizontalInput < 0)
+        if (horizontalInput < 0)
         {
             transform.localScale = new Vector3(-1f, 1f, 1f);
         }
-        else if (_horizontalInput > 0)
+        else if (horizontalInput > 0)
         {
             transform.localScale = new Vector3(1f, 1f, 1f);
         }
     }
-
+    /// <summary>
+    /// Single or double jump depending on ground state and ability flags.
+    /// </summary>
     private void HandleJump()
     {
         // nothing queued
-        if (!_jumpRequested)
+        if (!jumpRequested)
         {
             return;  
         }
-        _jumpRequested = false;
+        jumpRequested = false;
 
-        if (_isOnGround || (_canDoubleJump && _abilityTracker.CanDoubleJump))
+        if (isOnGround || (canDoubleJump && _abilityTracker.CanDoubleJump))
         {
-            if (_isOnGround)
+            if (isOnGround)
             {
-                _canDoubleJump = true;
+                canDoubleJump = true;
                 AudioManager.Instance.PlaySFXAdjusted(12);
             }
             else
             {
-                _canDoubleJump = false;
+                canDoubleJump = false;
                 PlayerAnimator.SetTrigger("doubleJump");
                 AudioManager.Instance.PlaySFXAdjusted(9);
             }
             PlayerRigidBody.velocity = new Vector2(PlayerRigidBody.velocity.x, JumpForce);
         }
     }
-
+    /// <summary>
+    /// Fires a bullet in standing mode, or drops a bomb while in ball mode.
+    /// </summary>
     private void HandleFireInput()
     {
         if (!Input.GetButtonDown("Fire1")) return;
@@ -184,42 +199,50 @@ public class PlayerController : MonoBehaviour
             AudioManager.Instance.PlaySFXAdjusted(13);
         }
     }
-
+    /// <summary>
+    /// Handles hold-down input for morphing between standing and ball forms.
+    /// Uses a small delay so accidental taps don’t toggle state.
+    /// </summary>
     private void HandleBallMorphInput()
     {
-        if (!Ball.activeSelf)          // STANDING TO BALL
+        // STANDING TO BALL
+        if (!Ball.activeSelf)          
         {
             if (Input.GetAxisRaw("Vertical") < -0.9f && _abilityTracker.CanBecomeBall)
             {
-                _ballCounter -= Time.deltaTime;
-                if (_ballCounter <= 0)
+                ballCounter -= Time.deltaTime;
+                if (ballCounter <= 0)
                 {
                     Ball.SetActive(true); Standing.SetActive(false);
                     AudioManager.Instance.PlaySFX(6);
                 }
             }
-            else _ballCounter = WaitToBall;
+            else ballCounter = WaitToBall;
         }
-        else                           // BALL TO STANDING
+        // BALL TO STANDING
+        else
         {
             if (Input.GetAxisRaw("Vertical") > 0.9f)
             {
-                _ballCounter -= Time.deltaTime;
-                if (_ballCounter <= 0)
+                ballCounter -= Time.deltaTime;
+                if (ballCounter <= 0)
                 {
                     Ball.SetActive(false); Standing.SetActive(true);
                     AudioManager.Instance.PlaySFX(10);
                 }
             }
-            else _ballCounter = WaitToBall;
+            else ballCounter = WaitToBall;
         }
     }
-
+    /// <summary>
+    /// Pushes velocity / ground state to the correct animator so
+    /// art can update independently of gameplay code.
+    /// </summary>
     private void UpdateAnimators()
     {
         if (Standing.activeSelf)
         {
-            PlayerAnimator.SetBool("isOnGround", _isOnGround);
+            PlayerAnimator.SetBool("isOnGround", isOnGround);
             PlayerAnimator.SetFloat("speed", Mathf.Abs(PlayerRigidBody.velocity.x));
         }
         if (Ball.activeSelf)
@@ -227,15 +250,51 @@ public class PlayerController : MonoBehaviour
             BallAnimator.SetFloat("speed", Mathf.Abs(PlayerRigidBody.velocity.x));
         }
     }
-
+    /// <summary>
+    /// Spawns or re-uses a sprite trail element for the dash effect.
+    /// Pulls from a small pool to avoid garbage allocations.
+    /// </summary>
     private void ShowAfterImage()
     {
-        var image = Instantiate(PlayerAfterImageSpriteRenderer, transform.position, transform.rotation);
-        image.sprite = PlayerSpriteRenderer.sprite;
-        image.transform.localScale = transform.localScale;
-        image.color = AfterImageColor;
+        //Pop until we find a live object
+        SpriteRenderer image = null;
+        while (afterImagePool.Count > 0 && image == null)
+        {
+            var candidate = afterImagePool.Dequeue();
+            // Unity null check (handles destroyed objects)
+            if (candidate != null)
+            {
+                image = candidate;
+            }            
+        }
 
-        Destroy(image.gameObject, AfterImageLifeTime);
-        _afterImageCounter = TimeBetweenAfterImages;
+        // Create new if needed
+        if (image == null)
+        {
+            image = Instantiate(PlayerAfterImageSpriteRenderer);
+        }
+
+        //Re-initialise
+        image.transform.SetPositionAndRotation(transform.position, transform.rotation);
+        image.transform.localScale = transform.localScale;
+        image.sprite = PlayerSpriteRenderer.sprite;
+        image.color = AfterImageColor;
+        image.gameObject.SetActive(true);
+
+        StartCoroutine(DisableAfterLifeTime(image));
+        afterImageCounter = TimeBetweenAfterImages;
     }
+
+    /// <summary>
+    /// Waits for the configured lifetime, hides the image, and
+    /// pushes it back into the queue for instant reuse next dash.
+    /// </summary>
+    IEnumerator DisableAfterLifeTime(SpriteRenderer img)
+    {
+        yield return new WaitForSeconds(AfterImageLifeTime);
+        img.gameObject.SetActive(false);
+        // recycled, zero allocation next time
+        afterImagePool.Enqueue(img);           
+    }
+
 }
