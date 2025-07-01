@@ -1,204 +1,225 @@
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
+    [Header("Refs")]
     public Rigidbody2D PlayerRigidBody;
-
-    public float MoveSpeed;
-    public float JumpForce;
-
-    public Transform GroundPoint;
-    public LayerMask WhatIsGround;
-
     public Animator PlayerAnimator;
-
-    public BulletController ShotToFire;
-    public Transform ShotPoint;
-
-    public float DashSpeed;
-    public float DashTime;
-    public float WaitAfterDashing;
-
+    public Animator BallAnimator;
     public SpriteRenderer PlayerSpriteRenderer;
     public SpriteRenderer PlayerAfterImageSpriteRenderer;
-    public float AfterImageLifeTime;
-    public float TimeBetweenAfterImages;
-    public Color AfterImageColor;
-
+    public Transform GroundPoint;
+    public Transform ShotPoint;
+    public Transform bombPoint;
+    public BulletController ShotToFire;
     public GameObject Standing;
     public GameObject Ball;
-    public float WaitToBall;
-    public Animator BallAnimator;
+    public GameObject bomb;
+    public LayerMask WhatIsGround;
 
-    public bool CanMove;
+    [Header("Move / Jump")]
+    public float MoveSpeed = 7f;
+    public float JumpForce = 15f;
 
-    private bool isOnGround;
+    [Header("Dash")]
+    public float DashSpeed = 20f;
+    public float DashTime = .25f;
+    public float WaitAfterDashing = .5f;
 
-    private bool canDoubleJump;
+    [Header("After-image")]
+    public float AfterImageLifeTime = .3f;
+    public float TimeBetweenAfterImages = .05f;
+    public Color AfterImageColor;
 
-    private float dashCounter;
-    private float dashRechargeCounter;
+    [Header("Ball morph")]
+    public float WaitToBall = .5f;
 
-    private float afterImageCounter;
+    private bool _isOnGround;
+    private bool _canDoubleJump;
+    private bool _jumpRequested;
+    private bool _dashRequested;
+    private float _horizontalInput;
+    private float _dashCounter;
+    private float _dashRechargeCounter;
+    private float _afterImageCounter;
+    private float _ballCounter;
 
-    private float ballCounter;
+    private PlayerAbilityTracker _abilityTracker;
+    public bool CanMove { get; set; } = true;
 
-    [SerializeField]
-    private Transform bombPoint;
-    [SerializeField]
-    private GameObject bomb;
-
-    private PlayerAbilityTracker playerAbilityTracker;
-
-    // Start is called before the first frame update
-    void Start()
+    #region Unity Life-cycle
+    private void Start()
     {
-        playerAbilityTracker = GetComponent<PlayerAbilityTracker>();
-        CanMove = true;
+        _abilityTracker = GetComponent<PlayerAbilityTracker>();
     }
 
-    // Update is called once per frame
-    void Update()
+    private void Update()
     {
-        if (CanMove && Time.timeScale != 0)
+        if (!CanMove || Time.timeScale == 0) 
         {
-            if (dashRechargeCounter > 0)
-            {
-                dashRechargeCounter -= Time.deltaTime;
-            }
-            else
-            {
-                //When standing then can dash
-                if (Input.GetButtonDown("Fire2") && Standing.activeSelf && playerAbilityTracker.CanDash)
-                {
-                    dashCounter = DashTime;
-                    ShowAfterImage();
-
-                    AudioManager.Instance.PlaySFXAdjusted(7);
-
-                }
-            }
-
-            if (dashCounter > 0)
-            {
-                dashCounter = dashCounter - Time.deltaTime;
-
-                PlayerRigidBody.velocity = new Vector2(DashSpeed * transform.localScale.x, PlayerRigidBody.velocity.y);
-
-                afterImageCounter -= Time.deltaTime;
-                if (afterImageCounter <= 0)
-                {
-                    ShowAfterImage();
-                }
-
-                dashRechargeCounter = WaitAfterDashing;
-            }
-            else
-            {
-                //move sideways
-                PlayerRigidBody.velocity = new Vector2(Input.GetAxisRaw("Horizontal") * MoveSpeed, PlayerRigidBody.velocity.y);
-
-                //handle direction change
-                if (PlayerRigidBody.velocity.x < 0)
-                {
-                    transform.localScale = new Vector3(-1f, 1f, 1f);
-                }
-                else if (PlayerRigidBody.velocity.y > 0)
-                {
-                    transform.localScale = new Vector3(1f, 1f, 1f);
-                }
-            }
-
-
-            //ground check
-            isOnGround = Physics2D.OverlapCircle(GroundPoint.position, 0.2f, WhatIsGround);
-
-            //jump check
-            if (Input.GetButtonDown("Jump") && (isOnGround || (canDoubleJump && playerAbilityTracker.CanDoubleJump)))
-            {
-                if (isOnGround)
-                {
-                    canDoubleJump = true;
-                    AudioManager.Instance.PlaySFXAdjusted(12);
-                }
-                else
-                {
-                    canDoubleJump = false;
-                    PlayerAnimator.SetTrigger("doubleJump");
-                    AudioManager.Instance.PlaySFXAdjusted(9);
-                }
-
-                PlayerRigidBody.velocity = new Vector2(PlayerRigidBody.velocity.x, JumpForce);
-            }
-
-            //Shooting logic
-            if (Input.GetButtonDown("Fire1"))
-            {
-                if (Standing.activeSelf)
-                {
-                    Instantiate(ShotToFire, ShotPoint.position, ShotPoint.rotation).MoveDirection =
-                        new Vector2(transform.localScale.x, 0f);
-
-                    PlayerAnimator.SetTrigger("shotFired");
-
-                    AudioManager.Instance.PlaySFXAdjusted(14);
-
-                }
-                else if (Ball.activeSelf && playerAbilityTracker.CanDropBomb)
-                {
-                    Instantiate(bomb, bombPoint.position, bombPoint.rotation);
-                    AudioManager.Instance.PlaySFXAdjusted(13);
-                }
-            }
-
-            //Ball Logic
-            if (!Ball.activeSelf)
-            {
-                if (Input.GetAxisRaw("Vertical") < -0.9f && playerAbilityTracker.CanBecomeBall)
-                {
-                    ballCounter -= Time.deltaTime;
-                    if (ballCounter <= 0)
-                    {
-                        Ball.SetActive(true);
-                        Standing.SetActive(false);
-
-                        AudioManager.Instance.PlaySFX(6);
-                    }
-                }
-                else
-                {
-                    ballCounter = WaitToBall;
-                }
-            }
-            else
-            {
-                if (Input.GetAxisRaw("Vertical") > 0.9f)
-                {
-                    ballCounter -= Time.deltaTime;
-                    if (ballCounter <= 0)
-                    {
-                        Ball.SetActive(false);
-                        Standing.SetActive(true);
-
-                        AudioManager.Instance.PlaySFX(10);
-                    }
-                }
-                else
-                {
-                    ballCounter = WaitToBall;
-                }
-            }
+            return; 
         }
-        else
+
+        //Poll input
+        _horizontalInput = Input.GetAxisRaw("Horizontal");
+
+        if (Input.GetButtonDown("Jump"))
         {
-            PlayerRigidBody.velocity = Vector2.zero;
+            _jumpRequested = true;
         }
+        if (Input.GetButtonDown("Fire2"))
+        {
+            _dashRequested = true;
+        }
+
+        HandleFireInput();         // bullets / bombs
+        HandleBallMorphInput();    // ball transistion
+        UpdateAnimators();         // purely visual
+    }
+
+    private void FixedUpdate()
+    {
+        if (!CanMove || Time.timeScale == 0) 
+        { 
+            PlayerRigidBody.velocity = Vector2.zero; 
+            return; 
+        }
+
+        // Ground check first so jump logic is correct
+        _isOnGround = Physics2D.OverlapCircle(GroundPoint.position, 0.2f, WhatIsGround);
+
+        HandleDash();
+        HandleHorizontalMovement();
+        HandleJump();
+    }
+    #endregion
+
+    private void HandleDash()
+    {
+        // recharge timer 
+        if (_dashRechargeCounter > 0)
+        {
+            _dashRechargeCounter -= Time.fixedDeltaTime;
+        }
+
+        // queue dash
+        if (_dashRequested && Standing.activeSelf && _abilityTracker.CanDash && _dashRechargeCounter <= 0)
+        {
+            _dashCounter = DashTime;
+            _dashRechargeCounter = WaitAfterDashing;
+            ShowAfterImage();
+            AudioManager.Instance.PlaySFXAdjusted(7);
+        }
+        _dashRequested = false;   // consume request
+
+        // active dash movement
+        if (_dashCounter > 0)
+        {
+            _dashCounter -= Time.fixedDeltaTime;
+            PlayerRigidBody.velocity = new Vector2(DashSpeed * transform.localScale.x, PlayerRigidBody.velocity.y);
+
+            _afterImageCounter -= Time.fixedDeltaTime;
+            if (_afterImageCounter <= 0) ShowAfterImage();
+            return; // skip normal movement while dashing
+        }
+    }
+
+    private void HandleHorizontalMovement()
+    {
+        PlayerRigidBody.velocity = new Vector2(_horizontalInput * MoveSpeed, PlayerRigidBody.velocity.y);
+
+        // flip sprite
+        if (_horizontalInput < 0)
+        {
+            transform.localScale = new Vector3(-1f, 1f, 1f);
+        }
+        else if (_horizontalInput > 0)
+        {
+            transform.localScale = new Vector3(1f, 1f, 1f);
+        }
+    }
+
+    private void HandleJump()
+    {
+        // nothing queued
+        if (!_jumpRequested)
+        {
+            return;  
+        }
+        _jumpRequested = false;
+
+        if (_isOnGround || (_canDoubleJump && _abilityTracker.CanDoubleJump))
+        {
+            if (_isOnGround)
+            {
+                _canDoubleJump = true;
+                AudioManager.Instance.PlaySFXAdjusted(12);
+            }
+            else
+            {
+                _canDoubleJump = false;
+                PlayerAnimator.SetTrigger("doubleJump");
+                AudioManager.Instance.PlaySFXAdjusted(9);
+            }
+            PlayerRigidBody.velocity = new Vector2(PlayerRigidBody.velocity.x, JumpForce);
+        }
+    }
+
+    private void HandleFireInput()
+    {
+        if (!Input.GetButtonDown("Fire1")) return;
 
         if (Standing.activeSelf)
         {
-            PlayerAnimator.SetBool("isOnGround", isOnGround);
+            Instantiate(ShotToFire, ShotPoint.position, ShotPoint.rotation)
+                .MoveDirection = new Vector2(transform.localScale.x, 0f);
+
+            PlayerAnimator.SetTrigger("shotFired");
+            AudioManager.Instance.PlaySFXAdjusted(14);
+        }
+        else if (Ball.activeSelf && _abilityTracker.CanDropBomb)
+        {
+            Instantiate(bomb, bombPoint.position, bombPoint.rotation);
+            AudioManager.Instance.PlaySFXAdjusted(13);
+        }
+    }
+
+    private void HandleBallMorphInput()
+    {
+        if (!Ball.activeSelf)          // STANDING TO BALL
+        {
+            if (Input.GetAxisRaw("Vertical") < -0.9f && _abilityTracker.CanBecomeBall)
+            {
+                _ballCounter -= Time.deltaTime;
+                if (_ballCounter <= 0)
+                {
+                    Ball.SetActive(true); Standing.SetActive(false);
+                    AudioManager.Instance.PlaySFX(6);
+                }
+            }
+            else _ballCounter = WaitToBall;
+        }
+        else                           // BALL TO STANDING
+        {
+            if (Input.GetAxisRaw("Vertical") > 0.9f)
+            {
+                _ballCounter -= Time.deltaTime;
+                if (_ballCounter <= 0)
+                {
+                    Ball.SetActive(false); Standing.SetActive(true);
+                    AudioManager.Instance.PlaySFX(10);
+                }
+            }
+            else _ballCounter = WaitToBall;
+        }
+    }
+
+    private void UpdateAnimators()
+    {
+        if (Standing.activeSelf)
+        {
+            PlayerAnimator.SetBool("isOnGround", _isOnGround);
             PlayerAnimator.SetFloat("speed", Mathf.Abs(PlayerRigidBody.velocity.x));
         }
         if (Ball.activeSelf)
@@ -207,17 +228,14 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    public void ShowAfterImage()
+    private void ShowAfterImage()
     {
-        SpriteRenderer image = Instantiate(PlayerAfterImageSpriteRenderer, transform.position, transform.rotation);
-
+        var image = Instantiate(PlayerAfterImageSpriteRenderer, transform.position, transform.rotation);
         image.sprite = PlayerSpriteRenderer.sprite;
         image.transform.localScale = transform.localScale;
         image.color = AfterImageColor;
 
         Destroy(image.gameObject, AfterImageLifeTime);
-
-        afterImageCounter = TimeBetweenAfterImages;
+        _afterImageCounter = TimeBetweenAfterImages;
     }
-
 }
