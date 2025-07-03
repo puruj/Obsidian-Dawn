@@ -42,18 +42,19 @@ public class PlayerController : MonoBehaviour
     private bool dashRequested;
     private float horizontalInput;
     private float dashCounter;
+    private bool isDashing;
     private float dashRechargeCounter;
     private float afterImageCounter;
     private float ballCounter;
 
-    private PlayerAbilityTracker _abilityTracker;
+    private PlayerAbilityTracker abilityTracker;
     private static readonly Queue<SpriteRenderer> afterImagePool = new();
     public bool CanMove { get; set; } = true;
 
     #region Unity Life-cycle
     private void Start()
     {
-        _abilityTracker = GetComponent<PlayerAbilityTracker>();
+        abilityTracker = GetComponent<PlayerAbilityTracker>();
     }
 
     private void Update()
@@ -106,38 +107,49 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     private void HandleDash()
     {
-        // recharge timer 
+        // recharge timer
         if (dashRechargeCounter > 0)
         {
             dashRechargeCounter -= Time.fixedDeltaTime;
         }
 
-        // queue dash
-        if (dashRequested && Standing.activeSelf && _abilityTracker.CanDash && dashRechargeCounter <= 0)
+        // start dash
+        if (dashRequested && Standing.activeSelf &&
+            abilityTracker.CanDash && dashRechargeCounter <= 0)
         {
+            isDashing = true;
             dashCounter = DashTime;
             dashRechargeCounter = WaitAfterDashing;
             ShowAfterImage();
             AudioManager.Instance.PlaySFXAdjusted(7);
         }
-        // consume request
-        dashRequested = false;   
+        dashRequested = false;
 
-        // active dash movement
-        if (dashCounter > 0)
+        // active dash
+        if (isDashing)
         {
-            dashCounter -= Time.fixedDeltaTime;
-            PlayerRigidBody.velocity = new Vector2(DashSpeed * transform.localScale.x, PlayerRigidBody.velocity.y);
+            PlayerRigidBody.velocity = new Vector2(DashSpeed * Mathf.Sign(transform.localScale.x), PlayerRigidBody.velocity.y);
 
+            dashCounter -= Time.fixedDeltaTime;
             afterImageCounter -= Time.fixedDeltaTime;
             if (afterImageCounter <= 0) ShowAfterImage();
-            // skip normal movement while dashing
+
+            if (dashCounter <= 0f)
+            {             
+                isDashing = false;
+            }
+
             return; 
         }
     }
 
     private void HandleHorizontalMovement()
     {
+        // don’t clamp dash speed
+        if (isDashing)
+        {
+            return;
+        }
         PlayerRigidBody.velocity = new Vector2(horizontalInput * MoveSpeed, PlayerRigidBody.velocity.y);
 
         // flip sprite
@@ -162,7 +174,7 @@ public class PlayerController : MonoBehaviour
         }
         jumpRequested = false;
 
-        if (isOnGround || (canDoubleJump && _abilityTracker.CanDoubleJump))
+        if (isOnGround || (canDoubleJump && abilityTracker.CanDoubleJump))
         {
             if (isOnGround)
             {
@@ -193,7 +205,7 @@ public class PlayerController : MonoBehaviour
             PlayerAnimator.SetTrigger("shotFired");
             AudioManager.Instance.PlaySFXAdjusted(14);
         }
-        else if (Ball.activeSelf && _abilityTracker.CanDropBomb)
+        else if (Ball.activeSelf && abilityTracker.CanDropBomb)
         {
             Instantiate(bomb, bombPoint.position, bombPoint.rotation);
             AudioManager.Instance.PlaySFXAdjusted(13);
@@ -208,7 +220,7 @@ public class PlayerController : MonoBehaviour
         // STANDING TO BALL
         if (!Ball.activeSelf)          
         {
-            if (Input.GetAxisRaw("Vertical") < -0.9f && _abilityTracker.CanBecomeBall)
+            if (Input.GetAxisRaw("Vertical") < -0.9f && abilityTracker.CanBecomeBall)
             {
                 ballCounter -= Time.deltaTime;
                 if (ballCounter <= 0)
